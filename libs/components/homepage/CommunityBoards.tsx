@@ -4,6 +4,10 @@ import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Stack, Typography } from '@mui/material';
 import CommunityCard from './CommunityCard';
 import { BoardArticle } from '../../types/board-article/board-article';
+import { GET_BOARD_ARTICLES, GET_PROPERTIES } from '../../../apollo/user/query';
+import { useQuery } from '@apollo/client';
+import { T } from '../../types/common';
+import { BoardArticleCategory } from '../../enums/board-article.enum';
 
 const CommunityBoards = () => {
 	const device = useDeviceDetect();
@@ -17,6 +21,45 @@ const CommunityBoards = () => {
 
 	/** APOLLO REQUESTS **/
 
+	const 
+			{
+				loading: getPropertiesLoading, 
+				data: getPropertiesData, 
+				error: getPropertiesError, 
+				refetch: getPropertiesRefetch,
+		
+			} 
+			= useQuery(GET_BOARD_ARTICLES, {
+				fetchPolicy: 'cache-and-network',
+				variables: {
+					input: {...searchCommunity,limit:6, search: {articleCategory: BoardArticleCategory.NEWS}},
+				},
+				notifyOnNetworkStatusChange: true,
+				onCompleted: (data: T ) => {
+					setNewsArticles(data?.getBoardArticles?.list);
+				},
+			});
+
+	const 
+			{
+				loading: getFreeArticlesLoading, 
+				data: getFreeArticlesData, 
+				error: getFreeArticlesError, 
+				refetch: getFreeArticlesRefetch,
+		
+			} 
+			= useQuery(GET_BOARD_ARTICLES, {
+				fetchPolicy: 'cache-and-network',
+				variables: {
+					input: {...searchCommunity,limit:6, search: {articleCategory: BoardArticleCategory.FREE}},
+				},
+				notifyOnNetworkStatusChange: true,
+				onCompleted: (data: T ) => {
+					setFreeArticles(data?.getBoardArticles?.list);
+				},
+			});
+
+			
 	if (device === 'mobile') {
 		return <div>COMMUNITY BOARDS (MOBILE)</div>;
 	} else {
@@ -61,3 +104,7 @@ const CommunityBoards = () => {
 };
 
 export default CommunityBoards;
+function setPopularProperties(list: any) {
+	throw new Error('Function not implemented.');
+}
+
