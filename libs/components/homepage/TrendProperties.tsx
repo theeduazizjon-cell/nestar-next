@@ -7,10 +7,28 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
 import { Property } from '../../types/property/property';
 import { PropertiesInquiry } from '../../types/property/property.input';
-import TrendPropertyCard from './TrendPropertyCard';
+import {TrendPropertyCard} from './TrendPropertyCard';
 import { GET_PROPERTIES } from '../../../apollo/user/query';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { T } from '../../types/common';
+import { LIKE_TARGET_PROPERTY } from '../../../apollo/user/mutation';
+import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
+import { useRouter } from 'next/router';
+import { userVar } from '../../../apollo/store';
+import { Message } from '@mui/icons-material';
+
+interface TrendPropertyCardProps {
+	property: Property;
+	likePropertyHandler: any;
+}
+
+const TrendPropertyCard = (props: TrendPropertyCardProps) => {
+	const {property, likePropertyHandler} = props;
+	const device = useDeviceDetect();
+	const router = useRouter();
+	const user = useReactiveVar(userVar);
+	
+}
 
 interface TrendPropertiesProps {
 	initialInput: PropertiesInquiry;
@@ -22,6 +40,8 @@ const TrendProperties = (props: TrendPropertiesProps) => {
 	const [trendProperties, setTrendProperties] = useState<Property[]>([]);
 
 	/** APOLLO REQUESTS **/
+	const [likeTargetProperty] = useMutation(LIKE_TARGET_PROPERTY);
+
 	const 
 	{
 		loading: getPropertiesLoading, 
@@ -42,6 +62,18 @@ const TrendProperties = (props: TrendPropertiesProps) => {
 	});
 
 	/** HANDLERS **/
+	const likePropertyHandler = async (user: T, id:string) => {
+		try {
+			if(!id) return; 
+			if(!user._id) throw new Error(Message.SOMETHING_WENT_WRONG);
+			await likeTargetProperty({variables: {input: id}, });
+			await getPropertiesRefetch({input: initialInput});
+
+			await sweetTopSmallSuccessAlert('success', 800);
+	} catch(err: any) {
+		console.error('Error occurred while liking property:', err.message);
+		sweetMixinErrorAlert(err.message).then();
+	}
 
 	if (trendProperties) console.log('trendProperties:', trendProperties);
 	if (!trendProperties) return null;
@@ -69,7 +101,7 @@ const TrendProperties = (props: TrendPropertiesProps) => {
 								{trendProperties.map((property: Property) => {
 									return (
 										<SwiperSlide key={property._id} className={'trend-property-slide'}>
-											<TrendPropertyCard property={property} />
+											<TrendPropertyCard property={property} likePropertyHandler={likePropertyHandler} />
 										</SwiperSlide>
 									);
 								})}
