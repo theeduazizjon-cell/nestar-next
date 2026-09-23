@@ -16,6 +16,7 @@ import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAler
 import { useRouter } from 'next/router';
 import { userVar } from '../../../apollo/store';
 import { Message } from '../../enums/common.enum';
+import router from 'next/router';
 
 interface TrendPropertiesProps {
 	initialInput: PropertiesInquiry;
