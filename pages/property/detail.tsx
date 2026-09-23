@@ -28,7 +28,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 // Swiper exposes this stylesheet as a side-effect import without TypeScript declarations.
 // @ts-expect-error Swiper CSS module has no type declaration.
 import 'swiper/css/pagination';
-import { GET_PROPERTIES } from '../../apollo/user/query';
+import { GET_COMMENTS, GET_PROPERTIES } from '../../apollo/user/query';
 import { T } from '../../libs/types/common';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
@@ -96,6 +96,22 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 			},
 		});
 
+	const {
+		loading: getCommentsLoading,
+		data: getCommentsData,
+		error: getCommentsError,
+		refetch: getCommentsRefetch,
+	} = useQuery(GET_COMMENTS, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: initialComment },
+		skip: !commentInquiry.search.commentRefId,
+		notifyOnNetworkStatusChange: true,
+		onCompleted: (data: T) => {
+			if (data?.getComments?.list) setPropertyComments(data?.getComments?.list);
+			setCommentTotal(data?.getComments?.metaCounter[0]?.total ?? 0);
+		},
+	});
+
 	/** LIFECYCLES **/
 	useEffect(() => {
 		if (router.query.id) {
@@ -113,7 +129,11 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 		}
 	}, [router]);
 
-	useEffect(() => {}, [commentInquiry]);
+	useEffect(() => {
+		if (commentInquiry.search.commentRefId) {
+			getCommentsRefetch({ input: commentInquiry });
+		}
+	}, [commentInquiry]);
 
 	/** HANDLERS **/
 	const changeImageHandler = (image: string) => {
@@ -583,7 +603,7 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 										{destinationProperty.map((property: Property) => {
 											return (
 												<SwiperSlide className={'similar-homes-slide'} key={property.propertyTitle}>
-															<PropertyBigCard property={property} />
+													<PropertyBigCard property={property} likePropertyHandler={likePropertyHandler} key={property?._id} />
 												</SwiperSlide>
 											);
 										})}
