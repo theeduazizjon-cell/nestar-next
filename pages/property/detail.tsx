@@ -11,7 +11,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
-import { useReactiveVar } from '@apollo/client';
+import { useQuery, useReactiveVar } from '@apollo/client';
 import { useRouter } from 'next/router';
 import { Property } from '../../libs/types/property/property';
 import moment from 'moment';
@@ -25,8 +25,12 @@ import { Pagination as MuiPagination } from '@mui/material';
 import Link from 'next/link';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import 'swiper/css';
+// Swiper exposes this stylesheet as a side-effect import without TypeScript declarations.
+// @ts-expect-error Swiper CSS module has no type declaration.
 import 'swiper/css/pagination';
+import { GET_PROPERTIES } from '../../apollo/user/query';
+import { T } from '../../libs/types/common';
+import { Direction } from '../../libs/enums/common.enum';
 
 SwiperCore.use([Autoplay, Navigation, Pagination]);
 
@@ -52,8 +56,43 @@ const PropertyDetail: NextPage = ({ initialComment, ...props }: any) => {
 		commentContent: '',
 		commentRefId: '',
 	});
+	const initialInput = {
+		page: 1,
+		limit: 6,
+		search: {},
+	};
 
 	/** APOLLO REQUESTS **/
+
+		const 
+		{
+			loading: getPropertiesLoading, 
+			data: getPropertiesData, 
+			error: getPropertiesError, 
+			refetch: getPropertiesRefetch,
+	
+		} 
+		= useQuery(GET_PROPERTIES, {
+			fetchPolicy: 'cache-and-network',
+			variables: {
+				input: {
+					page:1, 
+					limit:4,
+					sort: "createAt", 
+					direction: Direction.DESC,
+					search: {
+						propertyLocation: property?.propertyLocation,
+					}
+				}
+			},
+			skip: !propertyId,
+			notifyOnNetworkStatusChange: true,
+			onCompleted: (data: T ) => {
+				if (data?.getProperties?.list) {
+					setDestinationProperty(data?.getProperties?.list);
+				}	
+			},
+		});
 
 	/** LIFECYCLES **/
 	useEffect(() => {
@@ -545,3 +584,7 @@ PropertyDetail.defaultProps = {
 };
 
 export default withLayoutFull(PropertyDetail);
+function setTrendProperties(list: any) {
+	throw new Error('Function not implemented.');
+}
+
