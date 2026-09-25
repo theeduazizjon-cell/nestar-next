@@ -59,11 +59,13 @@ const CommunityDetail: NextPage = ({ initialInput, ...props }: T) => {
 	/** APOLLO REQUESTS **/
 
 	/** LIFECYCLES **/
+
 	useEffect(() => {
 		if (articleId) setSearchFilter({ ...searchFilter, search: { commentRefId: articleId } });
 	}, [articleId]);
 
 	/** HANDLERS **/
+
 	const tabChangeHandler = (event: React.SyntheticEvent, value: string) => {
 		router.replace(
 			{
